@@ -3,6 +3,7 @@ getgenv().bagToggle = false
 getgenv().runToggle = false
 getgenv().roadworkToggle = false
 getgenv().toolToggle = false
+getgenv().eatToggle = false
 local plr = game:GetService("Players").LocalPlayer
 local VIM = game:GetService("VirtualInputManager")
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
@@ -22,7 +23,20 @@ local bag = {
     Bag5 = Vector3.new(361.22723388671875, 97.41384887695312, 2483.760986328125);
     Bag6 = Vector3.new(361.1659851074219, 97.41384887695312, 2488.3525390625);
 }
-
+local tpLocations = {
+    Market = CFrame.new(-278.923889, 96.9206848, 1772.80005, -0.672145545, -5.50337873e-08, -0.74041903, -8.04506861e-09, 1, -6.70246578e-08, 0.74041903, -3.9093603e-08, -0.672145545),
+    coolMacroPlace = CFrame.new(216.924469, 117.165886, 1407.84949, 0.999901295, 1.11946173e-12, -0.0140489805, -1.57351521e-09, 1, -1.11911355e-07, 0.0140489805, 1.11922411e-07, 0.999901295),
+    sumoRing = CFrame.new(598.745483, 96.9206848, 1704.82458, -0.591540217, 1.00398907e-08, -0.806275487, -8.22692581e-10, 1, 1.30557689e-08, 0.806275487, 8.38632896e-09, -0.591540217),
+    leftBridgeOppositeGym = CFrame.new(483.030029, 90.1182175, 2045.97705, 0.960285544, 0.03356288, 0.276993066, 0.0188415293, 0.982672632, -0.184389368, -0.278382152, 0.182285413, 0.943014026),
+    Gym = CFrame.new(459.815063, 90.0876617, 2353.88257, -0.705625594, -0.100779593, -0.701381505, 0.00785013475, 0.988661528, -0.14995572, 0.708541393, -0.111318536, -0.696833789),
+    Hospital = CFrame.new(254.547791, 97.2945862, 2903.49072, 0.999229133, -5.68219427e-09, -0.0392573439, 5.73299985e-09, 1, 1.1815855e-09, 0.0392573439, -1.40573697e-09, 0.999229133),
+    KickBoxing = CFrame.new(366.00473, 97.0639496, 2928.01318, -0.99988389, 1.76384309e-15, 0.0152394185, 9.07536601e-10, 1, 5.95448881e-08, -0.0152394185, 5.95518053e-08, -0.99988389),
+    Warehouse = CFrame.new(582.621643, 96.6810608, 2771.8728, -0.999653339, -0.0228113495, 0.0131458221, -0.0226574391, 0.99967438, 0.0117402794, -0.0134093529, 0.0114383586, -0.99984467),
+    Park = CFrame.new(62.4496117, 97.386261, 2758.7251, -0.0519627295, -8.91549519e-08, -0.998649001, -7.80377984e-09, 1, -8.88695055e-08, 0.998649001, 3.17533511e-09, -0.0519627295),
+    coolMacroPlace2 = CFrame.new(-211.202087, 97.6535492, 2938.75317, -0.682380915, 2.86055197e-08, 0.730996788, 4.10832612e-08, 1, -7.81243903e-10, -0.730996788, 2.94986258e-08, -0.682380915),
+    rightBridge = CFrame.new(-21.9547367, 89.9064865, 2353.55298, -0.998981118, 0.00378895178, -0.0449708849, 0.0111404089, 0.986335814, -0.164370313, 0.0437336043, -0.164703831, -0.98537302),
+    rightBridgeOppositeGym = CFrame.new(-36.2502785, 89.5535889, 2049.00073, 0.980731845, 6.95350337e-08, -0.195358828, -5.16094296e-08, 1, 9.68475433e-08, 0.195358828, -8.48991135e-08, 0.980731845),
+}
 local helperFuncs = {
     function() -- equip gloves
         local char = plr.Character
@@ -63,7 +77,6 @@ local funcs = {
         while questToggle do
             local char = plr.Character
             local guyToTp = workspace.World.NPCs.Quests.Mina.HumanoidRootPart
-            local tweenService,tweenInfo = game:GetService("TweenService"), TweenInfo.new(8,Enum.EasingStyle.Linear,Enum.EasingDirection.Out,0,false,0)
             char.HumanoidRootPart.CFrame = guyToTp.CFrame
             repeat
                 local args = {
@@ -73,11 +86,8 @@ local funcs = {
                 game:GetService("ReplicatedStorage").Communication.Events.QuestEvent:FireServer(unpack(args))
                 wait()
             until game:GetService("Workspace").World.Visuals:FindFirstChild("QuestMarkerPart")
-            local tween = tweenService:Create(char.HumanoidRootPart,tweenInfo,{CFrame = game:GetService("Workspace").World.Visuals:WaitForChild("QuestMarkerPart").CFrame})
-            tween:Play()
-            while tween.PlaybackState ~= Enum.PlaybackState.Completed do
-                wait()
-            end
+            wait(8)
+            char.HumanoidRootPart.CFrame = game:GetService("Workspace").World.Visuals:WaitForChild("QuestMarkerPart").CFrame
             wait(1)
         end
     end;
@@ -132,10 +142,10 @@ local funcs = {
                 wait()
             until char:FindFirstChild("BoxingGlovesModel")
             repeat
-                helperFuncs[2]()
-                wait()
-            until char:FindFirstChild("Combat")
-            repeat
+                repeat
+                    helperFuncs[2]()
+                    wait()
+                until char:FindFirstChild("Combat")
                 VIM:SendMouseButtonEvent(1, 1, 0, true, game, 1)
                 VIM:SendMouseButtonEvent(1, 1, 0, false, game, 1)
                 if stamRegen then
@@ -219,6 +229,40 @@ local funcs = {
         end
         
     end;
+    autoEat = function()
+        while eatToggle do
+            for i,v in pairs(plr.Backpack:GetChildren()) do
+                if v:IsA("Tool") and v.Name == "Vanilla Protein Shake" then 
+                    local char = plr.Character
+                    char.Humanoid:EquipTool(v)
+                    VIM:SendMouseButtonEvent(1, 1, 0, true, game, 1)
+                    VIM:SendMouseButtonEvent(1, 1, 0, false, game, 1)
+                    break;
+                end
+            end
+            wait(22)
+        end
+    end;
+    tpTo = function(location)
+        local mt = getrawmetatable(game)
+        local oldnamecall = mt.__namecall
+        setreadonly(mt, false)
+        mt.__namecall = newcclosure(function(self, ...)
+            local args = {...}
+            if self.Name == "CombatEvent" and getnamecallmethod() == "FireServer" then
+                for i,v in pairs(args[2]) do
+                    if i == "AttackType" then
+                        return oldnamecall(self, ...)
+                    end
+                end
+                return nil
+            end
+            return oldnamecall(self, ...)
+        end)
+        setreadonly(mt, true)
+        local char = plr.Character
+        char.HumanoidRootPart.CFrame = tpLocations[location]
+    end
 }
 local function findFunc(name) -- function to find functions within the table from a string
     for i,v in pairs(funcs) do
@@ -297,6 +341,14 @@ Tab:AddDropdown({
 		bagSelected = Value
 	end    
 })
+Tab:AddToggle({ -- Toggle for non tool trainings
+	Name = "Auto Drink Protein Shakes",
+	Default = false,
+	Callback = function(Value)
+        eatToggle = Value
+        funcs[findFunc("Eat")]()
+    end
+})
 local Tab2 = Window:MakeTab({
 	Name = "Misc",
 	Icon = "rbxassetid://126039094",
@@ -313,6 +365,14 @@ Tab2:AddButton({
 	Callback = function()
         funcs[findFunc("Admin")]()
   	end    
+})
+Tab2:AddDropdown({
+	Name = "Teleport",
+	Default = "Market",
+	Options = {"Market","coolMacroPlace","sumoRing","leftBridgeOppositeGym","Gym","Hospital","KickBoxing","Warehouse","Park","coolMacroPlace2","rightBridge","rightBridgeOppositeGym"},
+	Callback = function(Value)
+		funcs[findFunc("tp")](Value)
+	end    
 })
 Tab2:AddToggle({ -- Toggle for non tool trainings
 	Name = "Auto Run",
