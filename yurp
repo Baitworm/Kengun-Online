@@ -1,0 +1,299 @@
+getgenv().questToggle = false
+getgenv().bagToggle = false
+getgenv().runToggle = false
+getgenv().roadworkToggle = false
+local plr = game:GetService("Players").LocalPlayer
+local VIM = game:GetService("VirtualInputManager")
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local minStam = 6
+local bagSelected = 1
+local stamRegen = false
+local camLocation = CFrame.new(402.423035, 106.161102, 2454.84937, -0.00517782243, 0.462061912, -0.886832595, -2.32830671e-10, 0.886844516, 0.462068081, 0.999986649, 0.00239250669, -0.00459192274)
+local camera = workspace.CurrentCamera
+local covType = "Money"
+local CD = game:GetService("Workspace").World.Products["Boxing Gloves"].ClickDetector -- top gloves
+local getGloveLocation = Vector3.new(416.658, 97.4138, 2455.44)
+local bag = {
+    Bag1 = Vector3.new(360.98760986328125, 97.41384887695312, 2450.333984375);
+    Bag2 = Vector3.new(360.5870361328125, 97.41384887695312, 2455.23095703125);
+    Bag3 = Vector3.new(360.92938232421875, 97.4138412475586, 2460.2177734375);
+    Bag4 = Vector3.new(361.2657165527344, 97.41386413574219, 2478.076416015625);
+    Bag5 = Vector3.new(361.22723388671875, 97.41384887695312, 2483.760986328125);
+    Bag6 = Vector3.new(361.1659851074219, 97.41384887695312, 2488.3525390625);
+}
+local helperFuncs = {
+    function() -- equip gloves
+        local char = plr.Character
+        local gloves = plr.Backpack:FindFirstChild("Boxing Gloves")
+        if not gloves then return end
+        char.Humanoid:EquipTool(gloves)
+        local tool = char:FindFirstChild("Boxing Gloves")
+        if tool then
+            tool:Activate() 
+        end
+    end;
+    function() -- equip combat
+        local char = plr.Character
+        local tool = plr.Backpack:FindFirstChild("Combat")
+        if not tool then return end
+        char.Humanoid:EquipTool(tool)
+    end;
+
+}
+local funcs = {
+    autoQuest = function()
+        local mt = getrawmetatable(game)
+        local oldnamecall = mt.__namecall
+        setreadonly(mt, false)
+        mt.__namecall = newcclosure(function(self, ...)
+            local args = {...}
+            if self.Name == "CombatEvent" and getnamecallmethod() == "FireServer" then
+                for i,v in pairs(args[2]) do
+                    if i == "AttackType" then
+                        return oldnamecall(self, ...)
+                    end
+                end
+                return nil
+            end
+            return oldnamecall(self, ...)
+        end)
+        setreadonly(mt, true)
+        while questToggle do
+            local char = plr.Character
+            local guyToTp = workspace.World.NPCs.Quests.Mina.HumanoidRootPart
+            local tweenService,tweenInfo = game:GetService("TweenService"), TweenInfo.new(8,Enum.EasingStyle.Linear,Enum.EasingDirection.Out,0,false,0)
+            char.HumanoidRootPart.CFrame = guyToTp.CFrame
+            repeat
+                local args = {
+                    [1] = "Request Quest",
+                    [2] = "CatFood6"
+                }
+                game:GetService("ReplicatedStorage").Communication.Events.QuestEvent:FireServer(unpack(args))
+                wait()
+            until game:GetService("Workspace").World.Visuals:FindFirstChild("QuestMarkerPart")
+            local tween = tweenService:Create(char.HumanoidRootPart,tweenInfo,{CFrame = game:GetService("Workspace").World.Visuals:WaitForChild("QuestMarkerPart").CFrame})
+            tween:Play()
+            while tween.PlaybackState ~= Enum.PlaybackState.Completed do
+                wait()
+            end
+            wait(1)
+        end
+    end;
+    antiAdmin = function()
+        local tab=  {
+            "VAPOR_SCRIPT";
+            "fwgrizz";
+            "XavierBxndZ";
+            "DemsPrep";
+            "BlackRabbit_GT";
+            "6oBanner";
+            "toshiwoshy";
+            "LuvRolyy";
+            "Xanzure";
+            "Superzcz";
+            "FatherYouseff";
+            "Rengret";
+            "r_Sofen";
+            "Mealikz ";
+            "evilsourr";
+            "TokensArk";
+            "adventsz";
+            "Brandon1881";
+            "Kyrushui";
+            "Jutiinian";
+            "EzraHatesYou";
+        }
+        for i,v in pairs(game:GetService("Players"):GetChildren()) do
+            if table.find(tab,v.Name,1) then
+                plr:Kick("Scallywag " + v.Name + " walking around [RELEASE] Kengun Online without a musket? You preposterous idiot, next time you see me on the trails get to steppin 😂 👎 🤡")
+            end
+        end
+        game:GetService("Players").PlayerAdded:Connect(function(player)
+            if table.find(tab,player.Name,1) then plr:Kick("Scallywag " + player.Name + " walking around [RELEASE] Kengun Online without a musket? You preposterous idiot, next time you see me on the trails get to steppin 😂 👎 🤡") end
+        end)
+    end;
+    autoBag = function()
+        local char = plr.Character
+        camera.CFrame = camLocation
+        camera.CameraType = Enum.CameraType.Scriptable
+        while bagToggle do
+            char.Humanoid:MoveTo(getGloveLocation)
+            char.Humanoid.MoveToFinished:Wait()
+            repeat
+                fireclickdetector(CD,32)
+                wait()
+            until plr.Backpack:FindFirstChild("Boxing Gloves")
+            char.Humanoid:MoveTo(bag["Bag" .. tostring(bagSelected)])
+            char.Humanoid.MoveToFinished:Wait()
+            repeat
+                helperFuncs[1]()
+                wait()
+            until char:FindFirstChild("BoxingGlovesModel")
+            repeat
+                helperFuncs[2]()
+                wait()
+            until char:FindFirstChild("Combat")
+            repeat
+                VIM:SendMouseButtonEvent(1, 1, 0, true, game, 1)
+                VIM:SendMouseButtonEvent(1, 1, 0, false, game, 1)
+                if stamRegen then
+                    if char.Stamina.Value <= minStam then
+                        wait(35)
+                    end
+                end
+                wait()
+            until not char:FindFirstChild("BoxingGlovesModel")
+            char.Humanoid:UnequipTools()
+        end
+        camera.CameraType = Enum.CameraType.Custom
+    end;
+    autoRoadwork = function()
+        local tpLocation = game:GetService("Workspace").World.NPCs.Quests.Rei.HumanoidRootPart.CFrame 
+        local mt = getrawmetatable(game)
+        local oldnamecall = mt.__namecall
+        setreadonly(mt, false)
+        mt.__namecall = newcclosure(function(self, ...)
+            local args = {...}
+            if self.Name == "CombatEvent" and getnamecallmethod() == "FireServer" then
+                for i,v in pairs(args[2]) do
+                    if i == "AttackType" then
+                        return oldnamecall(self, ...)
+                    end
+                end
+                return nil
+            end
+            return oldnamecall(self, ...)
+        end)
+        setreadonly(mt, true)
+        while roadworkToggle do
+            local char = plr.Character or plr.CharacterAdded
+            char.HumanoidRootPart.CFrame = tpLocation
+            game:GetService("ReplicatedStorage").Communication.Events.Roadwork:FireServer()
+            repeat
+                local curCFrame = game:GetService("Workspace").World.Visuals:WaitForChild("MarkerPart").CFrame + Vector3.new(0,-3,0)
+                repeat
+                    char.HumanoidRootPart.CFrame = curCFrame
+                    wait(8)
+                    if not game:GetService("Workspace").World.Visuals:FindFirstChild("MarkerPart") then
+                        break
+                    end
+                until game:GetService("Workspace").World.Visuals:FindFirstChild("MarkerPart").CFrame ~= curCFrame
+            until not game:GetService("Workspace").World.Visuals:FindFirstChild("MarkerPart")
+            wait()
+        end
+    end;
+    autoRun = function()
+        local char = plr.Character or plr.CharacterAdded:Wait()
+        while runToggle do
+            char = plr.Character or plr.CharacterAdded:Wait()
+            char:SetAttribute("Running", true)
+            wait()
+        end
+        char:SetAttribute("Running", false)
+    end;
+    antiAFK = function()
+        pcall(function()
+            for i,v in pairs(getconnections(game:GetService("Players").LocalPlayer.Idled)) do
+                v:Disable()
+            end
+        end)
+    end;
+
+}
+local function findFunc(name) -- function to find functions within the table from a string
+    for i,v in pairs(funcs) do
+        if string.find(i,name) then return i end
+    end
+end
+local Window = OrionLib:MakeWindow({Name = "KENSHIT!", HidePremium = true}) -- gui creation
+local Tab = Window:MakeTab({
+	Name = "Farms",
+	Icon = "rbxassetid://126039094",
+	PremiumOnly = false
+})
+Tab:AddToggle({ -- Toggle for non tool trainings
+	Name = "Coventional Grind",
+	Default = false,
+	Callback = function(Value)
+        if covType == "Bags" then
+            bagToggle = Value
+            if bagToggle then
+                OrionLib:MakeNotification({
+                    Name = "Bag Tutorial PT2",
+                    Content = "Hover over gloves and dont tab out also dont press any input keys",
+                    Image = "rbxassetid://126039094",
+                    Time = 7
+                })
+                OrionLib:MakeNotification({
+                    Name = "Bag Tutorial PT3",
+                    Content = "if you die it ain't resetting suck my dick nigga ",
+                    Image = "rbxassetid://126039094",
+                    Time = 7
+                })
+            end
+            funcs[findFunc("Bag")]()
+        else
+            if covType == "Money" then
+                questToggle = Value
+                funcs[findFunc("Quest")]()
+            else
+                if covType == "Roadwork" then
+                    roadworkToggle = Value
+                    funcs[findFunc("Roadwork")]()
+                end
+            end
+        end
+    end
+})
+Tab:AddDropdown({
+	Name = "Coventional Type",
+	Default = "Bags",
+	Options = {"Bags","Money", "Roadwork"},
+	Callback = function(Value)
+		covType = Value
+	end    
+})
+Tab:AddDropdown({
+	Name = "Bag Select (ignore if not doing bags)",
+	Default = 1,
+	Options = {1,2,3,4,5,6},
+	Callback = function(Value)
+		bagSelected = Value
+	end    
+})
+local Tab2 = Window:MakeTab({
+	Name = "Misc",
+	Icon = "rbxassetid://126039094",
+	PremiumOnly = false
+})
+Tab2:AddButton({
+	Name = "Anti AFK",
+	Callback = function()
+        funcs[findFunc("AFK")]()
+  	end    
+})
+Tab2:AddButton({
+	Name = "Anti Admin",
+	Callback = function()
+        funcs[findFunc("Admin")]()
+  	end    
+})
+Tab2:AddToggle({ -- Toggle for non tool trainings
+	Name = "Auto Run",
+	Default = false,
+	Callback = function(Value)
+        runToggle = Value
+        funcs[findFunc("Run")]()
+    end
+})
+OrionLib:MakeNotification({
+    Name = "Bag Tutorial PT1",
+    Content = "Walk into gym",
+    Image = "rbxassetid://126039094",
+    Time = 7
+})
+plr.CharacterAdded:Connect(function(char) -- after death keep farmin money
+    wait(6)
+    funcs[findFunc("Quest")]()
+    funcs[findFunc("Roadwork")]()
+end)
