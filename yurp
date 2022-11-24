@@ -381,6 +381,17 @@ Tab2:AddToggle({ -- Toggle for non tool trainings
         funcs[findFunc("Run")]()
     end
 })
+Tab2:AddButton({
+	Name = "Auto PB",
+	Callback = function()
+        OrionLib:MakeNotification({
+            Name = "PRANKED XDDDDDDDDD",
+            Content = "fuck ass nigga thought i already made that",
+            Image = "rbxassetid://126039094",
+            Time = 7
+        })
+  	end    
+})
 OrionLib:MakeNotification({
     Name = "Bag Tutorial PT1",
     Content = "Walk into gym",
