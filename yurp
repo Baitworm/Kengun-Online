@@ -2,6 +2,7 @@ getgenv().questToggle = false
 getgenv().bagToggle = false
 getgenv().runToggle = false
 getgenv().roadworkToggle = false
+getgenv().toolToggle = false
 local plr = game:GetService("Players").LocalPlayer
 local VIM = game:GetService("VirtualInputManager")
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
@@ -10,7 +11,7 @@ local bagSelected = 1
 local stamRegen = false
 local camLocation = CFrame.new(402.423035, 106.161102, 2454.84937, -0.00517782243, 0.462061912, -0.886832595, -2.32830671e-10, 0.886844516, 0.462068081, 0.999986649, 0.00239250669, -0.00459192274)
 local camera = workspace.CurrentCamera
-local covType = "Money"
+local covType,toolType
 local CD = game:GetService("Workspace").World.Products["Boxing Gloves"].ClickDetector -- top gloves
 local getGloveLocation = Vector3.new(416.658, 97.4138, 2455.44)
 local bag = {
@@ -21,6 +22,7 @@ local bag = {
     Bag5 = Vector3.new(361.22723388671875, 97.41384887695312, 2483.760986328125);
     Bag6 = Vector3.new(361.1659851074219, 97.41384887695312, 2488.3525390625);
 }
+
 local helperFuncs = {
     function() -- equip gloves
         local char = plr.Character
@@ -198,7 +200,25 @@ local funcs = {
             end
         end)
     end;
-
+    autoTool = function()
+        local char = plr.Character or plr.CharacterAdded:Wait()
+        if toolToggle then    
+            char.Humanoid:EquipTool(plr.Backpack:FindFirstChild(toolType))
+            wait(2)
+        end
+        while toolToggle do
+            repeat
+                VIM:SendMouseButtonEvent(1, 1, 0, true, game, 1)
+                VIM:SendMouseButtonEvent(1, 1, 0, false, game, 1)
+                wait()
+            until char.Stamina.Value <= minStam
+            if not char:FindFirstChild(toolType) then
+                char.Humanoid:EquipTool(plr.Backpack:FindFirstChild(toolType))
+            end
+            wait(35)
+        end
+        
+    end;
 }
 local function findFunc(name) -- function to find functions within the table from a string
     for i,v in pairs(funcs) do
@@ -245,12 +265,28 @@ Tab:AddToggle({ -- Toggle for non tool trainings
         end
     end
 })
+Tab:AddToggle({ -- Toggle for non tool trainings
+	Name = "Tool Grind",
+	Default = false,
+	Callback = function(Value)
+        toolToggle = Value
+        funcs[findFunc("Tool")]()
+    end
+})
 Tab:AddDropdown({
 	Name = "Coventional Type",
 	Default = "Bags",
 	Options = {"Bags","Money", "Roadwork"},
 	Callback = function(Value)
 		covType = Value
+	end    
+})
+Tab:AddDropdown({
+	Name = "Tool Type",
+	Default = "Pushups",
+	Options = {"Pushups","Squats", "Situps"},
+	Callback = function(Value)
+		toolType = Value
 	end    
 })
 Tab:AddDropdown({
