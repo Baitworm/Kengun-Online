@@ -368,7 +368,6 @@ Tab2:AddButton({
 })
 Tab2:AddDropdown({
 	Name = "Teleport",
-	Default = "Market",
 	Options = {"Market","coolMacroPlace","sumoRing","leftBridgeOppositeGym","Gym","Hospital","KickBoxing","Warehouse","Park","coolMacroPlace2","rightBridge","rightBridgeOppositeGym"},
 	Callback = function(Value)
 		funcs[findFunc("tp")](Value)
