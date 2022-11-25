@@ -4,12 +4,15 @@ getgenv().runToggle = false
 getgenv().roadworkToggle = false
 getgenv().toolToggle = false
 getgenv().eatToggle = false
+getgenv().PBToggle = false
 local plr = game:GetService("Players").LocalPlayer
 local VIM = game:GetService("VirtualInputManager")
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local CS = game:GetService("CollectionService")
 local minStam = 6
 local bagSelected = 1
 local stamRegen = false
+local pbAngle,pbRadius
 local camLocation = CFrame.new(402.423035, 106.161102, 2454.84937, -0.00517782243, 0.462061912, -0.886832595, -2.32830671e-10, 0.886844516, 0.462068081, 0.999986649, 0.00239250669, -0.00459192274)
 local camera = workspace.CurrentCamera
 local covType,toolType
@@ -37,8 +40,45 @@ local tpLocations = {
     rightBridge = CFrame.new(-21.9547367, 89.9064865, 2353.55298, -0.998981118, 0.00378895178, -0.0449708849, 0.0111404089, 0.986335814, -0.164370313, 0.0437336043, -0.164703831, -0.98537302),
     rightBridgeOppositeGym = CFrame.new(-36.2502785, 89.5535889, 2049.00073, 0.980731845, 6.95350337e-08, -0.195358828, -5.16094296e-08, 1, 9.68475433e-08, 0.195358828, -8.48991135e-08, 0.980731845),
 }
+local playerStyles = {
+    Basic = {
+        "rbxassetid://8928357924";
+        "rbxassetid://9979849736";
+        "rbxassetid://8928362110";
+        "rbxassetid://8928366472";
+    };
+    Boxing = {
+        "rbxassetid://10073863237";
+        "rbxassetid://10073865705";
+        "rbxassetid://10073867701";
+        "rbxassetid://10073869248";
+        "rbxassetid://10073860928";
+    };
+    Kickboxing = {
+        "rbxassetid://9904721350";
+        "rbxassetid://9904727420";
+        "rbxassetid://9904736221";
+        "rbxassetid://9904744597";
+        "rbxassetid://9904751428";
+    };
+    Wrestling = {
+        "rbxassetid://10351277998";
+        "rbxassetid://10351279401";
+        "rbxassetid://10351280892";
+        "rbxassetid://10351281859";
+        "rbxassetid://10351283400";
+    };
+    Taekwondo = {
+        "rbxassetid://9546137916";
+        "rbxassetid://9546147101";
+        "rbxassetid://9546156850";
+        "rbxassetid://9546170883";
+        "rbxassetid://9546180852";
+    }
+}
+local PBConnections = {}
 local helperFuncs = {
-    function() -- equip gloves
+    function() -- equip gloves 1
         local char = plr.Character
         local gloves = plr.Backpack:FindFirstChild("Boxing Gloves")
         if not gloves then return end
@@ -48,13 +88,20 @@ local helperFuncs = {
             tool:Activate() 
         end
     end;
-    function() -- equip combat
+    function() -- equip combat 2
         local char = plr.Character
         local tool = plr.Backpack:FindFirstChild("Combat")
         if not tool then return end
         char.Humanoid:EquipTool(tool)
     end;
-
+    function(char) -- findStyle 3
+        return char:GetAttribute("AttackStyle")
+    end;
+    function(style) -- block function 4
+        VIM:SendKeyEvent(true,"F",false,game)
+        wait(1)
+        VIM:SendKeyEvent(false,"F",false,game)
+    end;
 }
 local funcs = {
     autoQuest = function()
@@ -116,12 +163,12 @@ local funcs = {
             "EzraHatesYou";
         }
         for i,v in pairs(game:GetService("Players"):GetChildren()) do
-            if table.find(tab,v.Name,1) then
-                plr:Kick("Scallywag " + v.Name + " walking around [RELEASE] Kengun Online without a musket? You preposterous idiot, next time you see me on the trails get to steppin 😂 👎 🤡")
+            if table.find(tab,v.Name) then
+                plr:Kick("Scallywag " .. v.Name .. " walking around [RELEASE] Kengun Online without a musket? You preposterous idiot, next time you see me on the trails get to steppin 😂 👎 🤡")
             end
         end
         game:GetService("Players").PlayerAdded:Connect(function(player)
-            if table.find(tab,player.Name,1) then plr:Kick("Scallywag " + player.Name + " walking around [RELEASE] Kengun Online without a musket? You preposterous idiot, next time you see me on the trails get to steppin 😂 👎 🤡") end
+            if table.find(tab,player.Name) then plr:Kick("Scallywag " .. player.Name .. " walking around [RELEASE] Kengun Online without a musket? You preposterous idiot, next time you see me on the trails get to steppin 😂 👎 🤡") end
         end)
     end;
     autoBag = function()
@@ -261,7 +308,33 @@ local funcs = {
         end)
         setreadonly(mt, true)
         local char = plr.Character
+        plr:SetAttribute("InCombat",false)
+        char:SetAttribute("CombatTagged", false)
         char.HumanoidRootPart.CFrame = tpLocations[location]
+    end;
+    noDashCDAndBlockWhenever = function()
+        local modul = require(game:GetService("ReplicatedStorage").Modules.GlobalModules.CooldownManager)
+        modul.IsOnCooldown = function(yup,plr,tab)
+            return false
+        end  
+    end;
+    autoPB = function()
+        if PBToggle then
+            for i,v in pairs(game:GetService("Players"):GetChildren()) do
+                if plr.Character or v.Character and table.find(game:GetService("Workspace").World.Characters:GetChildren(),v.Character) then
+                    local otherPlayer = v.Character
+                    local yourPlayer = plr.Character
+                    PBConnections[v.Name] = otherPlayer.HumanoidRootPart.ChildAdded:Connect(function(child)
+                        if child.Name == "Swing" then 
+                            if (yourPlayer.HumanoidRootPart.Position - otherPlayer.HumanoidRootPart.Position).Magnitude <= pbRadius then
+                                helperFuncs[4]("yes")
+                            end
+                        end
+                    end)
+                end
+            end
+        end
+            
     end
 }
 local function findFunc(name) -- function to find functions within the table from a string
@@ -366,6 +439,12 @@ Tab2:AddButton({
         funcs[findFunc("Admin")]()
   	end    
 })
+Tab2:AddButton({
+	Name = "No CD on dash and block whenever",
+	Callback = function()
+        funcs[findFunc("DashCD")]()
+  	end    
+})
 Tab2:AddDropdown({
 	Name = "Teleport",
 	Options = {"Market","coolMacroPlace","sumoRing","leftBridgeOppositeGym","Gym","Hospital","KickBoxing","Warehouse","Park","coolMacroPlace2","rightBridge","rightBridgeOppositeGym"},
@@ -381,16 +460,37 @@ Tab2:AddToggle({ -- Toggle for non tool trainings
         funcs[findFunc("Run")]()
     end
 })
-Tab2:AddButton({
+Tab2:AddToggle({ -- Toggle for non tool trainings
 	Name = "Auto PB",
-	Callback = function()
-        OrionLib:MakeNotification({
-            Name = "PRANKED XDDDDDDDDD",
-            Content = "fuck ass nigga thought i already made that",
-            Image = "rbxassetid://126039094",
-            Time = 7
-        })
-  	end    
+	Default = false,
+	Callback = function(Value)
+        PBToggle = Value
+        funcs[findFunc("PB")]()
+    end
+})
+Tab2:AddSlider({
+	Name = "Auto PB Range",
+	Min = 5,
+	Max = 20,
+	Default = 12,
+	Color = Color3.fromRGB(89, 0, 255),
+	Increment = .5,
+	ValueName = "",
+	Callback = function(Value)
+		pbRadius = Value
+	end    
+})
+Tab2:AddSlider({
+	Name = "Auto PB Angle (from where they're looking)",
+	Min = 0,
+	Max = 90,
+	Default = 45,
+	Color = Color3.fromRGB(89, 0, 255),
+	Increment = .5,
+	ValueName = "",
+	Callback = function(Value)
+		pbAngle = Value
+	end    
 })
 OrionLib:MakeNotification({
     Name = "Bag Tutorial PT1",
@@ -403,3 +503,4 @@ plr.CharacterAdded:Connect(function(char) -- after death keep farmin money
     funcs[findFunc("Quest")]()
     funcs[findFunc("Roadwork")]()
 end)
+OrionLib:Init()
