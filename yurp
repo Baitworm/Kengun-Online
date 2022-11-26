@@ -42,7 +42,7 @@ local tpLocations = {
     rightBridgeOppositeGym = CFrame.new(-36.2502785, 89.5535889, 2049.00073, 0.980731845, 6.95350337e-08, -0.195358828, -5.16094296e-08, 1, 9.68475433e-08, 0.195358828, -8.48991135e-08, 0.980731845),
 }
 local hitAnims = {'rbxassetid://8928357924','rbxassetid://9979849736','rbxassetid://8928362110','rbxassetid://8928366472','rbxassetid://10073860928','rbxassetid://10073869248','rbxassetid://10073867701','rbxassetid://10073865705','rbxassetid://10073863237','rbxassetid://9904721350','rbxassetid://9904727420','rbxassetid://9904736221','rbxassetid://9904744597','rbxassetid://9904751428','rbxassetid://10351277998','rbxassetid://10351279401','rbxassetid://10351280892','rbxassetid://10351281859','rbxassetid://10351283400','rbxassetid://9546137916','rbxassetid://9546147101','rbxassetid://9546156850','rbxassetid://9546170883','rbxassetid://9546180852'}
-local pbConnection
+local pbConnection,eatConnection
 local helperFuncs = {
     function() -- equip gloves 1
         local char = plr.Character
@@ -83,7 +83,18 @@ local helperFuncs = {
                 end
             end
         end
-    end
+    end;
+    function() -- eat function 4
+        for i,v in pairs(plr.Backpack:GetChildren()) do
+            if v:IsA("Tool") and v.Name == "Vanilla Protein Shake" then 
+                local char = plr.Character
+                char.Humanoid:EquipTool(v)
+                VIM:SendMouseButtonEvent(1, 1, 0, true, game, 1)
+                VIM:SendMouseButtonEvent(1, 1, 0, false, game, 1)
+                break;
+            end
+        end
+    end;
 }
 local funcs = {
     autoQuest = function() 
@@ -243,17 +254,20 @@ local funcs = {
         
     end;
     autoEat = function()
-        while eatToggle do
-            for i,v in pairs(plr.Backpack:GetChildren()) do
-                if v:IsA("Tool") and v.Name == "Vanilla Protein Shake" then 
-                    local char = plr.Character
-                    char.Humanoid:EquipTool(v)
-                    VIM:SendMouseButtonEvent(1, 1, 0, true, game, 1)
-                    VIM:SendMouseButtonEvent(1, 1, 0, false, game, 1)
-                    break;
-                end
+        if eatToggle then
+            local char = plr.Character
+            if not char:FindFirstChild("Protein Shake") then
+                helperFuncs[4]()
             end
-            wait(22)
+            eatConnection = char.ChildRemoved:Connect(function(child)
+                if child.Name == "Protein Shake" then
+                    helperFuncs[4]()
+                end
+            end)
+        else
+            if eatConnection then
+                eatConnection:Disconnect()
+            end
         end
     end;
     tpTo = function(location)
