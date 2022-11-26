@@ -40,43 +40,8 @@ local tpLocations = {
     rightBridge = CFrame.new(-21.9547367, 89.9064865, 2353.55298, -0.998981118, 0.00378895178, -0.0449708849, 0.0111404089, 0.986335814, -0.164370313, 0.0437336043, -0.164703831, -0.98537302),
     rightBridgeOppositeGym = CFrame.new(-36.2502785, 89.5535889, 2049.00073, 0.980731845, 6.95350337e-08, -0.195358828, -5.16094296e-08, 1, 9.68475433e-08, 0.195358828, -8.48991135e-08, 0.980731845),
 }
-local playerStyles = {
-    Basic = {
-        "rbxassetid://8928357924";
-        "rbxassetid://9979849736";
-        "rbxassetid://8928362110";
-        "rbxassetid://8928366472";
-    };
-    Boxing = {
-        "rbxassetid://10073863237";
-        "rbxassetid://10073865705";
-        "rbxassetid://10073867701";
-        "rbxassetid://10073869248";
-        "rbxassetid://10073860928";
-    };
-    Kickboxing = {
-        "rbxassetid://9904721350";
-        "rbxassetid://9904727420";
-        "rbxassetid://9904736221";
-        "rbxassetid://9904744597";
-        "rbxassetid://9904751428";
-    };
-    Wrestling = {
-        "rbxassetid://10351277998";
-        "rbxassetid://10351279401";
-        "rbxassetid://10351280892";
-        "rbxassetid://10351281859";
-        "rbxassetid://10351283400";
-    };
-    Taekwondo = {
-        "rbxassetid://9546137916";
-        "rbxassetid://9546147101";
-        "rbxassetid://9546156850";
-        "rbxassetid://9546170883";
-        "rbxassetid://9546180852";
-    }
-}
-local PBConnections = {}
+local hitAnims = {'rbxassetid://8928357924','rbxassetid://9979849736','rbxassetid://8928362110','rbxassetid://8928366472','rbxassetid://10073860928','rbxassetid://10073869248','rbxassetid://10073867701','rbxassetid://10073865705','rbxassetid://10073863237','rbxassetid://9904721350','rbxassetid://9904727420','rbxassetid://9904736221','rbxassetid://9904744597','rbxassetid://9904751428','rbxassetid://10351277998','rbxassetid://10351279401','rbxassetid://10351280892','rbxassetid://10351281859','rbxassetid://10351283400','rbxassetid://9546137916','rbxassetid://9546147101','rbxassetid://9546156850','rbxassetid://9546170883','rbxassetid://9546180852'}
+local pbConnection
 local helperFuncs = {
     function() -- equip gloves 1
         local char = plr.Character
@@ -97,12 +62,10 @@ local helperFuncs = {
     function(char) -- findStyle 3
         return char:GetAttribute("AttackStyle")
     end;
-    function(style) -- block function 4
-        VIM:SendKeyEvent(true,"F",false,game)
-        wait(1)
-        VIM:SendKeyEvent(false,"F",false,game)
-    end;
 }
+local function block(condition)
+    VIM:SendKeyEvent(condition, "F", false, game)
+end
 local funcs = {
     autoQuest = function()
         local mt = getrawmetatable(game)
@@ -111,6 +74,9 @@ local funcs = {
         mt.__namecall = newcclosure(function(self, ...)
             local args = {...}
             if self.Name == "CombatEvent" and getnamecallmethod() == "FireServer" then
+                if args[1] == "Block" then
+                    return oldnamecall(self, ...)
+                end
                 for i,v in pairs(args[2]) do
                     if i == "AttackType" then
                         return oldnamecall(self, ...)
@@ -118,7 +84,7 @@ local funcs = {
                 end
                 return nil
             end
-            return oldnamecall(self, ...)
+            return oldnamecall(self, unpack(args))
         end)
         setreadonly(mt, true)
         while questToggle do
@@ -214,6 +180,9 @@ local funcs = {
         mt.__namecall = newcclosure(function(self, ...)
             local args = {...}
             if self.Name == "CombatEvent" and getnamecallmethod() == "FireServer" then
+                if args[1] == "Block" then
+                    return oldnamecall(self, ...)
+                end
                 for i,v in pairs(args[2]) do
                     if i == "AttackType" then
                         return oldnamecall(self, ...)
@@ -221,7 +190,7 @@ local funcs = {
                 end
                 return nil
             end
-            return oldnamecall(self, ...)
+            return oldnamecall(self, unpack(args))
         end)
         setreadonly(mt, true)
         while roadworkToggle do
@@ -297,6 +266,9 @@ local funcs = {
         mt.__namecall = newcclosure(function(self, ...)
             local args = {...}
             if self.Name == "CombatEvent" and getnamecallmethod() == "FireServer" then
+                if args[1] == "Block" then
+                    return oldnamecall(self, ...)
+                end
                 for i,v in pairs(args[2]) do
                     if i == "AttackType" then
                         return oldnamecall(self, ...)
@@ -304,12 +276,10 @@ local funcs = {
                 end
                 return nil
             end
-            return oldnamecall(self, ...)
+            return oldnamecall(self, unpack(args))
         end)
         setreadonly(mt, true)
         local char = plr.Character
-        plr:SetAttribute("InCombat",false)
-        char:SetAttribute("CombatTagged", false)
         char.HumanoidRootPart.CFrame = tpLocations[location]
     end;
     noDashCDAndBlockWhenever = function()
@@ -320,21 +290,30 @@ local funcs = {
     end;
     autoPB = function()
         if PBToggle then
-            for i,v in pairs(game:GetService("Players"):GetChildren()) do
-                if plr.Character or v.Character and table.find(game:GetService("Workspace").World.Characters:GetChildren(),v.Character) then
-                    local otherPlayer = v.Character
-                    local yourPlayer = plr.Character
-                    PBConnections[v.Name] = otherPlayer.HumanoidRootPart.ChildAdded:Connect(function(child)
-                        if child.Name == "Swing" then 
-                            if (yourPlayer.HumanoidRootPart.Position - otherPlayer.HumanoidRootPart.Position).Magnitude <= pbRadius then
-                                helperFuncs[4]("yes")
+            pbConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                for i,v in pairs(game.Players:GetChildren()) do
+                    if v~= plr then
+                        local otherPlayer = v.Character
+                        local yourPlayer = plr.Character
+                        local distance = (yourPlayer.HumanoidRootPart.Position - otherPlayer.HumanoidRootPart.Position).Magnitude
+                        local dot = (otherPlayer.Head.Position - yourPlayer.Head.Position).Unit:Dot(yourPlayer.Head.CFrame.LookVector)
+                        local dotAngle = math.deg(math.acos(dot))
+                        if distance <= tonumber(pbRadius) and  dotAngle <= pbAngle then
+                            for i,animation in pairs(otherPlayer.Humanoid:GetPlayingAnimationTracks()) do
+                                if table.find(hitAnims, animation.Animation.AnimationId) then
+                                    wait(0.1)
+                                    block(true)
+                                    wait(5)
+                                    block(false)
+                                end
                             end
-                        end
-                    end)
+                        end 
+                    end
                 end
-            end
+            end)
+        else
+            if pbConnection ~= nil then pbConnection:Disconnect() end
         end
-            
     end
 }
 local function findFunc(name) -- function to find functions within the table from a string
