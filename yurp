@@ -63,7 +63,7 @@ local helperFuncs = {
     function(char) -- findStyle 3
         return char:GetAttribute("AttackStyle")
     end;
-    function(style)
+    function(style) -- block 4
         if style == "Basic" or style == "Kickboxing" or style == "Taekwondo" then
             wait(0.1)
             VIM:SendKeyEvent(true, "F", false, game)
@@ -84,7 +84,7 @@ local helperFuncs = {
             end
         end
     end;
-    function() -- eat function 4
+    function() -- eat function 5
         for i,v in pairs(plr.Backpack:GetChildren()) do
             if v:IsA("Tool") and v.Name == "Vanilla Protein Shake" then 
                 local char = plr.Character
@@ -257,17 +257,15 @@ local funcs = {
         if eatToggle then
             local char = plr.Character
             if not char:FindFirstChild("Protein Shake") then
-                helperFuncs[4]()
+                helperFuncs[5]()
             end
             eatConnection = char.ChildRemoved:Connect(function(child)
                 if child.Name == "Protein Shake" then
-                    helperFuncs[4]()
+                    helperFuncs[5]()
                 end
             end)
         else
-            if eatConnection then
-                eatConnection:Disconnect()
-            end
+            eatConnection:Disconnect()
         end
     end;
     tpTo = function(location)
