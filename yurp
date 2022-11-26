@@ -12,6 +12,7 @@ local CS = game:GetService("CollectionService")
 local minStam = 6
 local bagSelected = 1
 local stamRegen = false
+local tweenService,tweenInfo,tweenInfo2 = game:GetService("TweenService"),TweenInfo.new(8,Enum.EasingStyle.Linear,Enum.EasingDirection.Out,0,false,0),TweenInfo.new(1,Enum.EasingStyle.Linear,Enum.EasingDirection.Out,0,false,0)
 local pbAngle,pbRadius
 local camLocation = CFrame.new(402.423035, 106.161102, 2454.84937, -0.00517782243, 0.462061912, -0.886832595, -2.32830671e-10, 0.886844516, 0.462068081, 0.999986649, 0.00239250669, -0.00459192274)
 local camera = workspace.CurrentCamera
@@ -62,42 +63,56 @@ local helperFuncs = {
     function(char) -- findStyle 3
         return char:GetAttribute("AttackStyle")
     end;
+    function(style)
+        if style == "Basic" or style == "Kickboxing" or style == "Taekwondo" then
+            wait(0.1)
+            VIM:SendKeyEvent(true, "F", false, game)
+            wait(0.2)
+            VIM:SendKeyEvent(false, "F", false, game)  
+        else
+            if style == "Boxing" then
+                VIM:SendKeyEvent(true, "F", false, game)
+                wait(0.2)
+                VIM:SendKeyEvent(false, "F", false, game)  
+            else
+                if style == "Wrestling" then
+                    wait(0.3)
+                    VIM:SendKeyEvent(true, "F", false, game)
+                    wait(0.2)
+                    VIM:SendKeyEvent(false, "F", false, game)  
+                end
+            end
+        end
+    end
 }
 local funcs = {
-    autoQuest = function()
-        local mt = getrawmetatable(game)
-        local oldnamecall = mt.__namecall
-        setreadonly(mt, false)
-        mt.__namecall = newcclosure(function(self, ...)
-            local args = {...}
-            if self.Name == "CombatEvent" and getnamecallmethod() == "FireServer" then
-                if args[1] == "Block" then
-                    return oldnamecall(self, ...)
-                end
-                for i,v in pairs(args[2]) do
-                    if i == "AttackType" then
-                        return oldnamecall(self, ...)
-                    end
-                end
-                return nil
-            end
-            return oldnamecall(self, unpack(args))
-        end)
-        setreadonly(mt, true)
-        while questToggle do
+    autoQuest = function() 
+        if questToggle then
             local char = plr.Character
             local guyToTp = workspace.World.NPCs.Quests.Mina.HumanoidRootPart
-            char.HumanoidRootPart.CFrame = guyToTp.CFrame
+            local tween = tweenService:Create(char.HumanoidRootPart,tweenInfo2,{CFrame = char.HumanoidRootPart.CFrame + Vector3.new(0,-100,0)})
+            tween:Play()
+            tween.Completed:Wait()
+            local tween2 = tweenService:Create(char.HumanoidRootPart,tweenInfo2,{CFrame = guyToTp.CFrame + Vector3.new(0,-5,0)})
+            tween2:Play()
+            tween2.Completed:Wait()
+        end
+        while questToggle do
+            local char = plr.Character
             repeat
+                local guyToTp = workspace.World.NPCs.Quests.Mina.HumanoidRootPart
                 local args = {
                     [1] = "Request Quest",
                     [2] = "CatFood6"
                 }
                 game:GetService("ReplicatedStorage").Communication.Events.QuestEvent:FireServer(unpack(args))
-                wait()
+                local tween2 = tweenService:Create(char.HumanoidRootPart,tweenInfo2,{CFrame = guyToTp.CFrame + Vector3.new(0,-5,0)})
+                tween2:Play()
+                tween2.Completed:Wait()
             until game:GetService("Workspace").World.Visuals:FindFirstChild("QuestMarkerPart")
-            wait(8)
-            char.HumanoidRootPart.CFrame = game:GetService("Workspace").World.Visuals:WaitForChild("QuestMarkerPart").CFrame
+            local tween = tweenService:Create(char.HumanoidRootPart,tweenInfo,{CFrame = game:GetService("Workspace").World.Visuals:WaitForChild("QuestMarkerPart").CFrame})
+            tween:Play()
+            tween.Completed:Wait()
             wait(1)
         end
     end;
@@ -170,35 +185,23 @@ local funcs = {
         camera.CameraType = Enum.CameraType.Custom
     end;
     autoRoadwork = function()
-        local tpLocation = game:GetService("Workspace").World.NPCs.Quests.Rei.HumanoidRootPart.CFrame 
-        local mt = getrawmetatable(game)
-        local oldnamecall = mt.__namecall
-        setreadonly(mt, false)
-        mt.__namecall = newcclosure(function(self, ...)
-            local args = {...}
-            if self.Name == "CombatEvent" and getnamecallmethod() == "FireServer" then
-                if args[1] == "Block" then
-                    return oldnamecall(self, ...)
-                end
-                for i,v in pairs(args[2]) do
-                    if i == "AttackType" then
-                        return oldnamecall(self, ...)
-                    end
-                end
-                return nil
-            end
-            return oldnamecall(self, unpack(args))
-        end)
-        setreadonly(mt, true)
+        local tpLocation = game:GetService("Workspace").World.NPCs.Quests.Rei.HumanoidRootPart.CFrame
         while roadworkToggle do
             local char = plr.Character or plr.CharacterAdded
-            char.HumanoidRootPart.CFrame = tpLocation
+            local tweenToGuy = tweenService:Create(char.HumanoidRootPart,tweenInfo2,{CFrame = tpLocation + Vector3.new(0,-10,0)})
+            tweenToGuy:Play()
+            tweenToGuy.Completed:Wait()
             game:GetService("ReplicatedStorage").Communication.Events.Roadwork:FireServer()
             repeat
-                local curCFrame = game:GetService("Workspace").World.Visuals:WaitForChild("MarkerPart").CFrame + Vector3.new(0,-3,0)
+                local curCFrame = game:GetService("Workspace").World.Visuals:WaitForChild("MarkerPart").CFrame 
+                local tweenUnder = tweenService:Create(char.HumanoidRootPart,tweenInfo,{CFrame = curCFrame + Vector3.new(0,-97,0)})
+                local tweenTo = tweenService:Create(char.HumanoidRootPart,tweenInfo2,{CFrame = curCFrame})
                 repeat
-                    char.HumanoidRootPart.CFrame = curCFrame
-                    wait(8)
+                    tweenUnder:Play()
+                    tweenUnder.Completed:Wait()
+                    tweenTo:Play()
+                    tweenTo.Completed:Wait()
+                    wait(1)
                     if not game:GetService("Workspace").World.Visuals:FindFirstChild("MarkerPart") then
                         break
                     end
@@ -257,27 +260,10 @@ local funcs = {
         end
     end;
     tpTo = function(location)
-        local mt = getrawmetatable(game)
-        local oldnamecall = mt.__namecall
-        setreadonly(mt, false)
-        mt.__namecall = newcclosure(function(self, ...)
-            local args = {...}
-            if self.Name == "CombatEvent" and getnamecallmethod() == "FireServer" then
-                if args[1] == "Block" then
-                    return oldnamecall(self, ...)
-                end
-                for i,v in pairs(args[2]) do
-                    if i == "AttackType" then
-                        return oldnamecall(self, ...)
-                    end
-                end
-                return nil
-            end
-            return oldnamecall(self, unpack(args))
-        end)
-        setreadonly(mt, true)
         local char = plr.Character
-        char.HumanoidRootPart.CFrame = tpLocations[location]
+        local tween = tweenService:Create(char.HumanoidRootPart,tweenInfo2,{CFrame = tpLocations[location]})
+        tween:Play()
+        tween.Completed:Wait()
     end;
     noDashCDAndBlockWhenever = function()
         local modul = require(game:GetService("ReplicatedStorage").Modules.GlobalModules.CooldownManager)
@@ -298,12 +284,8 @@ local funcs = {
                         if distance <= tonumber(pbRadius) and  dotAngle <= pbAngle then
                             for i,animation in pairs(otherPlayer.Humanoid:GetPlayingAnimationTracks()) do
                                 if table.find(hitAnims, animation.Animation.AnimationId) then
-                                    delay(0.1,function()
-                                        VIM:SendKeyEvent(true, "F", false, game)
-                                        wait(5)
-                                        VIM:SendKeyEvent(false, "F", false, game)
-                                    end)
-    
+                                    local style = helperFuncs[3](v.Character)
+                                    helperFuncs[4](style)
                                 end
                             end
                         end 
@@ -476,6 +458,25 @@ OrionLib:MakeNotification({
     Image = "rbxassetid://126039094",
     Time = 7
 })
+local mt = getrawmetatable(game)
+local oldnamecall = mt.__namecall
+setreadonly(mt, false)
+mt.__namecall = newcclosure(function(self, ...)
+    local args = {...}
+    if self.Name == "CombatEvent" and getnamecallmethod() == "FireServer" then
+        if args[1] ~= "RegisterHit" then
+            return oldnamecall(self, ...)
+        end
+        for i,v in pairs(args[2]) do
+            if i == "AttackType" then
+                return oldnamecall(self, ...)
+            end
+        end
+        return nil
+    end
+    return oldnamecall(self, unpack(args))
+end)
+setreadonly(mt, true)
 plr.CharacterAdded:Connect(function(char) -- after death keep farmin money
     wait(6)
     funcs[findFunc("Quest")]()
