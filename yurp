@@ -63,9 +63,6 @@ local helperFuncs = {
         return char:GetAttribute("AttackStyle")
     end;
 }
-local function block(condition)
-    VIM:SendKeyEvent(condition, "F", false, game)
-end
 local funcs = {
     autoQuest = function()
         local mt = getrawmetatable(game)
@@ -301,10 +298,12 @@ local funcs = {
                         if distance <= tonumber(pbRadius) and  dotAngle <= pbAngle then
                             for i,animation in pairs(otherPlayer.Humanoid:GetPlayingAnimationTracks()) do
                                 if table.find(hitAnims, animation.Animation.AnimationId) then
-                                    wait(0.1)
-                                    block(true)
-                                    wait(5)
-                                    block(false)
+                                    delay(0.1,function()
+                                        VIM:SendKeyEvent(true, "F", false, game)
+                                        wait(5)
+                                        VIM:SendKeyEvent(false, "F", false, game)
+                                    end)
+    
                                 end
                             end
                         end 
