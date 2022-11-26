@@ -188,13 +188,10 @@ local funcs = {
         local tpLocation = game:GetService("Workspace").World.NPCs.Quests.Rei.HumanoidRootPart.CFrame
         while roadworkToggle do
             local char = plr.Character or plr.CharacterAdded
-            local tweenToGuy = tweenService:Create(char.HumanoidRootPart,tweenInfo2,{CFrame = tpLocation + Vector3.new(0,-10,0)})
-            tweenToGuy:Play()
-            tweenToGuy.Completed:Wait()
             game:GetService("ReplicatedStorage").Communication.Events.Roadwork:FireServer()
             repeat
                 local curCFrame = game:GetService("Workspace").World.Visuals:WaitForChild("MarkerPart").CFrame 
-                local tweenUnder = tweenService:Create(char.HumanoidRootPart,tweenInfo,{CFrame = curCFrame + Vector3.new(0,-97,0)})
+                local tweenUnder = tweenService:Create(char.HumanoidRootPart,tweenInfo,{CFrame = curCFrame + Vector3.new(0,-20,0)})
                 local tweenTo = tweenService:Create(char.HumanoidRootPart,tweenInfo2,{CFrame = curCFrame})
                 repeat
                     tweenUnder:Play()
