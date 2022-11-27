@@ -265,7 +265,9 @@ local funcs = {
                 end
             end)
         else
-            eatConnection:Disconnect()
+            if eatConnection then
+                eatConnection:Disconnect()
+            end
         end
     end;
     tpTo = function(location)
