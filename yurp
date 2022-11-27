@@ -76,7 +76,7 @@ local helperFuncs = {
                 VIM:SendKeyEvent(false, "F", false, game)  
             else
                 if style == "Wrestling" then
-                    wait(0.4)
+                    wait(0.6)
                     VIM:SendKeyEvent(true, "F", false, game)
                     wait(0.2)
                     VIM:SendKeyEvent(false, "F", false, game)  
@@ -94,6 +94,10 @@ local helperFuncs = {
                 break;
             end
         end
+    end;
+    function(style) -- style swap function 6
+        local char = plr.Character
+        char:SetAttribute("AttackStyle", style)
     end;
 }
 local funcs = {
@@ -461,6 +465,13 @@ Tab2:AddSlider({
 	ValueName = "",
 	Callback = function(Value)
 		pbAngle = Value
+	end    
+})
+Tab2:AddDropdown({
+	Name = "Style Swap",
+	Options = {"Basic","Boxing","Taekwondo","Wrestling","Kickboxing"},
+	Callback = function(Value)
+		helperFuncs[6](Value)
 	end    
 })
 OrionLib:MakeNotification({
