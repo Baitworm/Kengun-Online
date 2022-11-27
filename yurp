@@ -76,7 +76,7 @@ local helperFuncs = {
                 VIM:SendKeyEvent(false, "F", false, game)  
             else
                 if style == "Wrestling" then
-                    wait(0.3)
+                    wait(0.4)
                     VIM:SendKeyEvent(true, "F", false, game)
                     wait(0.2)
                     VIM:SendKeyEvent(false, "F", false, game)  
